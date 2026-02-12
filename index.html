@@ -3,114 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Love Catcher ❤️</title>
+    <title>Für meine Heldin ❤️</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #fff5f5; font-family: sans-serif; touch-action: none; }
-        #game-container { position: relative; width: 100vw; height: 100vh; }
-        #player { position: absolute; bottom: 20px; width: 60px; height: 60px; font-size: 50px; display: flex; justify-content: center; align-items: center; transition: transform 0.1s; }
-        .falling { position: absolute; font-size: 30px; }
-        #ui { position: absolute; top: 20px; left: 20px; font-weight: bold; color: #ff4d6d; font-size: 24px; z-index: 10; }
-        #win-screen { display: none; position: fixed; inset: 0; background: white; z-index: 100; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        body { margin: 0; overflow: hidden; background: #fff5f5; font-family: 'Inter', sans-serif; touch-action: none; }
+        .handwritten { font-family: 'Dancing Script', cursive; }
+        #game-container { position: relative; width: 100vw; height: 100vh; background: #fff5f5; }
+        #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        .falling { position: absolute; font-size: 35px; z-index: 4; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; font-weight: bold; color: #ef4444; font-size: 24px; z-index: 10; letter-spacing: 1px; }
+        
+        /* Overlay & Anleitung */
+        #overlay { position: fixed; inset: 0; background: white; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; }
+        .instruction-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 12px; margin-bottom: 25px; width: 100%; max-width: 320px; }
+        .symbol-card { background: #fff1f2; padding: 10px; border-radius: 12px; border: 1px solid #fecdd3; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #991b1b; }
+        .btn-start { background: #ef4444; color: white; padding: 16px 60px; border-radius: 50px; font-size: 20px; font-weight: bold; shadow: 0 10px 15px rgba(239, 68, 68, 0.3); transition: transform 0.2s; }
+        
+        /* Win-Screen */
+        #win-screen { display: none; position: fixed; inset: 0; background: white; z-index: 300; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .fade-in { animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="ui">Punkte: <span id="score">0</span> / 500</div>
+    <div id="ui" class="fade-in">Punkte: <span id="score">0</span> / 1500</div>
+
+    <div id="overlay">
+        <h1 class="handwritten text-5xl text-red-500 mb-6 text-center">Hallo Schatz ❤️</h1>
+        <p class="text-gray-600 mb-6 text-center max-w-xs">Sammle genug Liebe, um meine Nachricht zu lesen!</p>
+        
+        <div class="instruction-grid">
+            <div class="symbol-card"><span>❤️</span> <b>+50</b></div>
+            <div class="symbol-card"><span>💎</span> <b>+150</b></div>
+            <div class="symbol-card"><span>🔥</span> <b>+250</b></div>
+            <div class="symbol-card"><span>💔</span> <b>-100</b></div>
+            <div class="symbol-card"><span>💣</span> <b>-300</b></div>
+            <div class="symbol-card"><span>❄️</span> <b>-200</b></div>
+        </div>
+        
+        <button class="btn-start shadow-xl active:scale-95" onclick="startGame()">Spiel starten</button>
+    </div>
 
     <div id="game-container">
         <div id="player">🧺</div>
     </div>
 
-    <div id="win-screen" class="fade-in">
-        <h1 class="text-4xl font-bold text-red-500 mb-4">GEWONNEN! ❤️</h1>
-        <p class="text-xl text-gray-700 mb-6">Du hast genug Liebe gesammelt!</p>
+    <div id="win-screen">
+        <h1 class="handwritten text-5xl text-red-500 mb-4">Geschafft! ❤️</h1>
+        <div class="w-12 h-1 bg-red-100 mb-6"></div>
         
-        <img src="https://via.placeholder.com/300x200?text=Euer+Foto" alt="Valentinstag" class="rounded-xl shadow-2xl mb-6 max-w-full h-auto border-4 border-pink-200">
+        <img src="https://via.placeholder.com/400x400?text=EUER+FOTO" id="finalPhoto" class="rounded-2xl shadow-2xl border-4 border-white max-w-[300px] mb-6">
         
-        <p class="italic text-gray-600">"Auch wenn ich gerade weg bin, gehört mein Herz dir. Ich liebe dich!"</p>
-        <p class="mt-4 font-bold text-2xl text-pink-600">- Dein [Name]</p>
+        <div class="max-w-xs">
+            <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                "Du hast 1.500 Punkte gesammelt, aber für mich bist du unbezahlbar. Ich vermisse dich so sehr!"
+            </p>
+            <p class="handwritten text-4xl text-gray-800">Dein [Dein Name]</p>
+        </div>
     </div>
 
     <script>
-        const container = document.getElementById('game-container');
-        const player = document.getElementById('player');
-        const scoreElement = document.getElementById('score');
-        const winScreen = document.getElementById('win-screen');
-        
         let score = 0;
-        let playerX = window.innerWidth / 2 - 30;
-        let gameActive = true;
+        let gameActive = false;
+        let playerX = window.innerWidth / 2 - 40;
+        const scoreElement = document.getElementById('score');
+        const player = document.getElementById('player');
+        const container = document.getElementById('game-container');
 
-        // Steuerung am Handy
-        window.addEventListener('touchmove', (e) => {
+        const items = [
+            { s: '❤️', p: 50, prob: 0.5 },
+            { s: '💎', p: 150, prob: 0.1 },
+            { s: '🔥', p: 250, prob: 0.05 },
+            { s: '💔', p: -100, prob: 0.15 },
+            { s: '💣', p: -300, prob: 0.1 },
+            { s: '❄️', p: -200, prob: 0.1 }
+        ];
+
+        function startGame() {
+            document.getElementById('overlay').style.display = 'none';
+            gameActive = true;
+            spawnLoop();
+        }
+
+        function move(e) {
             if (!gameActive) return;
-            let touchX = e.touches[0].clientX;
-            playerX = touchX - 30;
+            let x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            playerX = x - 40;
             if (playerX < 0) playerX = 0;
-            if (playerX > window.innerWidth - 60) playerX = window.innerWidth - 60;
+            if (playerX > window.innerWidth - 80) playerX = window.innerWidth - 80;
             player.style.left = playerX + 'px';
-        });
+        }
+        window.addEventListener('touchmove', move);
+        window.addEventListener('mousemove', move);
 
-        // Steuerung am PC (optional)
-        window.addEventListener('mousemove', (e) => {
+        function spawnLoop() {
             if (!gameActive) return;
-            playerX = e.clientX - 30;
-            player.style.left = playerX + 'px';
-        });
+            createItem();
+            // Schwierigkeit: Geschwindigkeit der Erzeugung
+            let delay = score > 1000 ? 350 : 500;
+            setTimeout(spawnLoop, delay);
+        }
 
         function createItem() {
-            if (!gameActive) return;
             const item = document.createElement('div');
-            const isBad = Math.random() > 0.8;
+            const rand = Math.random();
+            let chosen = items[0];
+            
+            let cumulative = 0;
+            for (let i of items) {
+                cumulative += i.prob;
+                if (rand < cumulative) {
+                    chosen = i;
+                    break;
+                }
+            }
+
             item.className = 'falling';
-            item.innerHTML = isBad ? '💣' : '❤️';
-            item.style.left = Math.random() * (window.innerWidth - 30) + 'px';
+            item.innerHTML = chosen.s;
+            item.style.left = Math.random() * (window.innerWidth - 40) + 'px';
             item.style.top = '-50px';
             container.appendChild(item);
 
             let posY = -50;
-            const fallInterval = setInterval(() => {
-                if (!gameActive) {
-                    clearInterval(fallInterval);
-                    item.remove();
-                    return;
-                }
-                posY += 5;
+            let speed = 5 + (score / 400); // Fällt schneller, je mehr Punkte man hat
+
+            const fall = setInterval(() => {
+                if (!gameActive) { clearInterval(fall); item.remove(); return; }
+                posY += speed;
                 item.style.top = posY + 'px';
 
-                // Kollision prüfen
-                if (posY > window.innerHeight - 80 && posY < window.innerHeight - 20) {
-                    const itemX = parseInt(item.style.left);
-                    if (itemX > playerX - 20 && itemX < playerX + 50) {
-                        if (isBad) {
-                            score = Math.max(0, score - 50);
-                        } else {
-                            score += 25;
-                        }
+                if (posY > window.innerHeight - 110 && posY < window.innerHeight - 30) {
+                    let itemX = parseInt(item.style.left);
+                    if (itemX > playerX - 30 && itemX < playerX + 70) {
+                        score += chosen.p;
+                        if (score < 0) score = 0;
                         scoreElement.innerText = score;
                         item.remove();
-                        clearInterval(fallInterval);
-                        checkWin();
+                        clearInterval(fall);
+                        if (score >= 1500) win();
                     }
                 }
-
-                if (posY > window.innerHeight) {
-                    item.remove();
-                    clearInterval(fallInterval);
-                }
+                if (posY > window.innerHeight) { item.remove(); clearInterval(fall); }
             }, 20);
         }
 
-        function checkWin() {
-            if (score >= 500) {
-                gameActive = false;
-                winScreen.style.display = 'flex';
-            }
+        function win() {
+            gameActive = false;
+            document.getElementById('win-screen').style.display = 'flex';
+            document.getElementById('win-screen').classList.add('fade-in');
         }
-
-        setInterval(createItem, 600);
     </script>
 </body>
 </html>
-
