@@ -3,64 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Für meine Heldin ❤️</title>
+    <title>Valentinstag Mission ❤️</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #fff5f5; font-family: 'Inter', sans-serif; touch-action: none; }
         .handwritten { font-family: 'Dancing Script', cursive; }
         #game-container { position: relative; width: 100vw; height: 100vh; background: #fff5f5; }
-        #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+        #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; transition: transform 0.05s; }
         .falling { position: absolute; font-size: 35px; z-index: 4; }
-        #ui { position: absolute; top: 20px; width: 100%; text-align: center; font-weight: bold; color: #ef4444; font-size: 24px; z-index: 10; letter-spacing: 1px; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; font-weight: bold; color: #ef4444; font-size: 24px; z-index: 10; }
         
-        /* Overlay & Anleitung */
-        #overlay { position: fixed; inset: 0; background: white; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; }
-        .instruction-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 12px; margin-bottom: 25px; width: 100%; max-width: 320px; }
-        .symbol-card { background: #fff1f2; padding: 10px; border-radius: 12px; border: 1px solid #fecdd3; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #991b1b; }
-        .btn-start { background: #ef4444; color: white; padding: 16px 60px; border-radius: 50px; font-size: 20px; font-weight: bold; shadow: 0 10px 15px rgba(239, 68, 68, 0.3); transition: transform 0.2s; }
+        #overlay { position: fixed; inset: 0; background: white; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; overflow-y: auto; }
+        .instruction-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 320px; }
+        .symbol-card { background: #fff1f2; padding: 8px; border-radius: 10px; border: 1px solid #fecdd3; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #991b1b; }
         
-        /* Win-Screen */
+        .btn-start { background: #ef4444; color: white; padding: 16px 60px; border-radius: 50px; font-size: 20px; font-weight: bold; box-shadow: 0 10px 15px rgba(239, 68, 68, 0.3); }
+        
         #win-screen { display: none; position: fixed; inset: 0; background: white; z-index: 300; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .fade-in { animation: fadeIn 1s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .gift-box { font-size: 100px; cursor: pointer; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
     </style>
 </head>
 <body>
 
-    <div id="ui" class="fade-in">Punkte: <span id="score">0</span> / 1500</div>
+    <div id="ui">Score: <span id="score">0</span> / 2000</div>
 
     <div id="overlay">
-        <h1 class="handwritten text-5xl text-red-500 mb-6 text-center">Hallo Schatz ❤️</h1>
-        <p class="text-gray-600 mb-6 text-center max-w-xs">Sammle genug Liebe, um meine Nachricht zu lesen!</p>
+        <h1 class="handwritten text-5xl text-red-500 mb-4">Für dich ❤️</h1>
         
+        <div class="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 text-center">
+            <p class="font-bold text-red-600 mb-2 underline">STEUERUNG:</p>
+            <p class="text-sm text-gray-700">Wische mit deinem Finger auf dem Bildschirm nach <b>LINKS</b> und <b>RECHTS</b>, um den Korb zu bewegen!</p>
+        </div>
+
         <div class="instruction-grid">
+            <div class="symbol-card"><span>🌹</span> <b>+200 (Rose!)</b></div>
             <div class="symbol-card"><span>❤️</span> <b>+50</b></div>
             <div class="symbol-card"><span>💎</span> <b>+150</b></div>
-            <div class="symbol-card"><span>🔥</span> <b>+250</b></div>
-            <div class="symbol-card"><span>💔</span> <b>-100</b></div>
-            <div class="symbol-card"><span>💣</span> <b>-300</b></div>
-            <div class="symbol-card"><span>❄️</span> <b>-200</b></div>
+            <div class="symbol-card"><span>🔥</span> <b>+300</b></div>
+            <div class="symbol-card"><span>💣</span> <b>-400</b></div>
+            <div class="symbol-card"><span>❄️</span> <b>-250</b></div>
         </div>
         
-        <button class="btn-start shadow-xl active:scale-95" onclick="startGame()">Spiel starten</button>
+        <p class="text-xs text-gray-500 mb-6 italic">Ziel: 2.000 Punkte für das Geschenk!</p>
+        <button class="btn-start active:scale-95" onclick="startGame()">START</button>
     </div>
 
     <div id="game-container">
         <div id="player">🧺</div>
     </div>
 
-    <div id="win-screen">
-        <h1 class="handwritten text-5xl text-red-500 mb-4">Geschafft! ❤️</h1>
-        <div class="w-12 h-1 bg-red-100 mb-6"></div>
-        
-        <img src="https://via.placeholder.com/400x400?text=EUER+FOTO" id="finalPhoto" class="rounded-2xl shadow-2xl border-4 border-white max-w-[300px] mb-6">
-        
-        <div class="max-w-xs">
-            <p class="text-gray-700 text-lg leading-relaxed mb-6">
-                "Du hast 1.500 Punkte gesammelt, aber für mich bist du unbezahlbar. Ich vermisse dich so sehr!"
-            </p>
-            <p class="handwritten text-4xl text-gray-800">Dein [Dein Name]</p>
+    <div id="win-screen" id="gift-phase">
+        <div id="gift-container">
+            <h1 class="handwritten text-4xl text-red-500 mb-8">Du hast es geschafft!</h1>
+            <p class="mb-10 text-gray-600">Hier ist dein Geschenk. Klick es an!</p>
+            <div class="gift-box" onclick="openGift()">🎁</div>
+        </div>
+
+        <div id="final-content" class="hidden flex flex-col items-center">
+            <img src="https://via.placeholder.com/400x400?text=EUER+FOTO" id="finalPhoto" class="rounded-2xl shadow-2xl border-4 border-white max-w-[280px] mb-6">
+            <p class="text-gray-700 text-lg italic mb-4 max-w-xs">"Jede Rose heute ist für dich. Du bist mein größtes Geschenk!"</p>
+            <p class="handwritten text-4xl text-gray-800">Dein [Name]</p>
         </div>
     </div>
 
@@ -73,12 +77,13 @@
         const container = document.getElementById('game-container');
 
         const items = [
-            { s: '❤️', p: 50, prob: 0.5 },
+            { s: '❤️', p: 50, prob: 0.4 },
+            { s: '🌹', p: 200, prob: 0.1 },
             { s: '💎', p: 150, prob: 0.1 },
-            { s: '🔥', p: 250, prob: 0.05 },
+            { s: '🔥', p: 300, prob: 0.05 },
             { s: '💔', p: -100, prob: 0.15 },
-            { s: '💣', p: -300, prob: 0.1 },
-            { s: '❄️', p: -200, prob: 0.1 }
+            { s: '💣', p: -400, prob: 0.1 },
+            { s: '❄️', p: -250, prob: 0.1 }
         ];
 
         function startGame() {
@@ -95,14 +100,14 @@
             if (playerX > window.innerWidth - 80) playerX = window.innerWidth - 80;
             player.style.left = playerX + 'px';
         }
-        window.addEventListener('touchmove', move);
+        window.addEventListener('touchmove', move, {passive: false});
         window.addEventListener('mousemove', move);
 
         function spawnLoop() {
             if (!gameActive) return;
             createItem();
-            // Schwierigkeit: Geschwindigkeit der Erzeugung
-            let delay = score > 1000 ? 350 : 500;
+            // Schnellerer Spawn-Intervall für mehr Schwierigkeit
+            let delay = score > 1000 ? 300 : 450;
             setTimeout(spawnLoop, delay);
         }
 
@@ -110,14 +115,10 @@
             const item = document.createElement('div');
             const rand = Math.random();
             let chosen = items[0];
-            
             let cumulative = 0;
             for (let i of items) {
                 cumulative += i.prob;
-                if (rand < cumulative) {
-                    chosen = i;
-                    break;
-                }
+                if (rand < cumulative) { chosen = i; break; }
             }
 
             item.className = 'falling';
@@ -127,7 +128,8 @@
             container.appendChild(item);
 
             let posY = -50;
-            let speed = 5 + (score / 400); // Fällt schneller, je mehr Punkte man hat
+            // DEUTLICH SCHNELLER: Basis-Speed ist 7
+            let speed = 7 + (score / 250);
 
             const fall = setInterval(() => {
                 if (!gameActive) { clearInterval(fall); item.remove(); return; }
@@ -142,7 +144,7 @@
                         scoreElement.innerText = score;
                         item.remove();
                         clearInterval(fall);
-                        if (score >= 1500) win();
+                        if (score >= 2000) win();
                     }
                 }
                 if (posY > window.innerHeight) { item.remove(); clearInterval(fall); }
@@ -152,7 +154,11 @@
         function win() {
             gameActive = false;
             document.getElementById('win-screen').style.display = 'flex';
-            document.getElementById('win-screen').classList.add('fade-in');
+        }
+
+        function openGift() {
+            document.getElementById('gift-container').classList.add('hidden');
+            document.getElementById('final-content').classList.remove('hidden');
         }
     </script>
 </body>
