@@ -10,20 +10,30 @@
         body { margin: 0; overflow: hidden; background: #fff5f5; font-family: 'Inter', sans-serif; touch-action: none; }
         .handwritten { font-family: 'Dancing Script', cursive; }
         #countdown-screen { position: fixed; inset: 0; background: white; z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
-        .timer-box { font-size: 2rem; font-weight: bold; color: #ef4444; margin: 20px 0; font-family: monospace; border: 2px solid #fecdd3; padding: 15px; border-radius: 20px; background: #fff1f2; }
+        .timer-box { font-size: 2.2rem; font-weight: bold; color: #ef4444; margin: 15px 0; font-family: monospace; border: 2px solid #fecdd3; padding: 15px; border-radius: 20px; background: #fff1f2; }
+        
+        /* Debug Konsole am unteren Rand */
+        #debug-log { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #00ff00; font-family: monospace; font-size: 11px; padding: 10px; z-index: 1000; pointer-events: none; }
+        
         #game-container { position: relative; width: 100vw; height: 100vh; display: none; }
         #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; }
         .falling { position: absolute; font-size: 35px; z-index: 4; }
         #overlay, #win-screen { display: none; position: fixed; inset: 0; background: white; z-index: 200; flex-direction: column; align-items: center; justify-content: center; padding: 25px; text-align: center; }
         .btn-start { background: #ef4444; color: white; padding: 16px 60px; border-radius: 50px; font-size: 20px; font-weight: bold; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div id="debug-log">
+        [System-Start] Warte auf Zeit-Daten...
+    </div>
+
     <div id="countdown-screen">
-        <h1 class="handwritten text-5xl text-red-500 mb-4">Geduld, Liebes... ❤️</h1>
-        <p id="status-text" class="text-gray-500 text-sm">Synchronisiere Zeit-Server...</p>
-        <div id="timer" class="timer-box">LÄDT...</div>
+        <h1 class="handwritten text-5xl text-red-500 mb-4">Nur noch kurz... ❤️</h1>
+        <p id="status-text" class="text-gray-400 text-xs">Zeit-Synchronisation läuft</p>
+        <div id="timer" class="timer-box">SYNC...</div>
+        <div class="text-3xl animate-pulse">🔐</div>
     </div>
 
     <div id="overlay">
@@ -32,63 +42,94 @@
     </div>
 
     <div id="ui" class="hidden fixed top-5 w-full text-center font-bold text-red-500 text-2xl z-50">Score: <span id="score">0</span></div>
-    <div id="game-container"><div id="player">🧺</div></div>
+    <div id="game-container"><div id="player" style="left: 50%;">🧺</div></div>
 
     <div id="win-screen">
         <h1 class="handwritten text-4xl text-red-500 mb-8">Geschafft!</h1>
         <div class="text-8xl cursor-pointer" onclick="document.getElementById('final').classList.remove('hidden')">🎁</div>
         <div id="final" class="hidden mt-6 flex flex-col items-center">
-            <img src="https://via.placeholder.com/400x400?text=FOTO" class="rounded-2xl shadow-xl max-w-[280px]">
-            <p class="handwritten text-4xl mt-4">Ich liebe dich!</p>
+            <img src="https://via.placeholder.com/400x400?text=FOTO" class="rounded-2xl shadow-xl max-w-[250px]">
+            <p class="handwritten text-3xl mt-4">Ich liebe dich!</p>
         </div>
     </div>
 
     <script>
         const targetUnix = 1739538000; // 14.02.2026, 14:00 Uhr
+        const debug = document.getElementById('debug-log');
         let currentUnix = 0;
 
-        async function getTime() {
+        function log(msg) {
+            debug.innerHTML += "<br>> " + msg;
+            console.log(msg);
+        }
+
+        async function initTime() {
+            const apiUrl = "https://time.now/developer/api/unixtime";
+            
+            // SCHRITT 1: Der normale Weg
+            log("Versuch 1: Direkte Anfrage...");
             try {
-                // Nutzung eines öffentlichen Proxys, um CORS-Fehler auf GitHub zu umgehen
-                const proxy = "https://api.allorigins.win/get?url=";
-                const apiUrl = encodeURIComponent("https://time.now/developer/api/unixtime");
+                const res = await fetch(apiUrl);
+                const text = await res.text();
+                log("Antwort erhalten (Direkt)!");
+                processTime(text, "Direkt-API");
+            } catch (err) {
+                log("<span style='color:orange'>Fehler: Direkter Weg blockiert (CORS).</span>");
                 
-                const response = await fetch(proxy + apiUrl);
-                const data = await response.json();
-                
-                // AllOrigins packt die Antwort in data.contents
-                currentUnix = parseInt(data.contents);
-
-                if (isNaN(currentUnix)) throw new Error("Keine Zahl");
-
-                document.getElementById('status-text').innerText = "Bereit für Valentinstag...";
-                
-                setInterval(() => {
-                    currentUnix++;
-                    const diff = targetUnix - currentUnix;
-                    if (diff <= 0) {
-                        document.getElementById('countdown-screen').style.display = 'none';
-                        document.getElementById('overlay').style.display = 'flex';
-                    } else {
-                        const d = Math.floor(diff / 86400);
-                        const h = Math.floor((diff % 86400) / 3600);
-                        const m = Math.floor((diff % 3600) / 60);
-                        const s = diff % 60;
-                        document.getElementById('timer').innerText = `${d}d ${h}h ${m}m ${s}s`;
-                    }
-                }, 1000);
-
-            } catch (e) {
-                // Wenn alles reißt, nutzen wir die Systemzeit als Notfall
-                document.getElementById('status-text').innerText = "Offline-Modus aktiv.";
-                currentUnix = Math.floor(Date.now() / 1000);
-                // Hier würde die Schleife von oben ebenfalls starten
+                // SCHRITT 2: Der Proxy Weg
+                log("Versuch 2: Über Proxy (AllOrigins)...");
+                try {
+                    const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
+                    const resProxy = await fetch(proxyUrl);
+                    const data = await resProxy.json();
+                    log("Antwort erhalten (Proxy)!");
+                    processTime(data.contents, "Proxy-Tunnel");
+                } catch (err2) {
+                    log("<span style='color:red'>KRITISCH: Alles fehlgeschlagen.</span>");
+                    document.getElementById('timer').innerText = "ERROR";
+                }
             }
         }
 
-        getTime();
+        function processTime(raw, source) {
+            log("Rohdaten: " + raw);
+            const unix = parseInt(raw.trim());
+            
+            if (isNaN(unix)) {
+                log("FEHLER: Rohdaten sind keine Zahl!");
+                return;
+            }
+            
+            currentUnix = unix;
+            log("Erfolg! Startzeit: " + new Date(unix * 1000).toLocaleString());
+            log("Quelle: " + source);
+            
+            // Countdown starten
+            startCountdown();
+        }
 
-        // --- GAME LOGIK ---
+        function startCountdown() {
+            setInterval(() => {
+                currentUnix++;
+                const diff = targetUnix - currentUnix;
+                
+                if (diff <= 0) {
+                    document.getElementById('countdown-screen').style.display = 'none';
+                    document.getElementById('overlay').style.display = 'flex';
+                    debug.style.display = 'none'; // Debug aus wenn fertig
+                } else {
+                    const d = Math.floor(diff / 86400);
+                    const h = Math.floor((diff % 86400) / 3600);
+                    const m = Math.floor((diff % 3600) / 60);
+                    const s = diff % 60;
+                    document.getElementById('timer').innerText = `${d}d ${h}h ${m}m ${s}s`;
+                }
+            }, 1000);
+        }
+
+        initTime();
+
+        // --- SPIEL LOGIK ---
         let score = 0;
         let gameActive = false;
         function startGame() {
@@ -111,7 +152,8 @@
             const fall = setInterval(() => {
                 posY += 8;
                 item.style.top = posY + 'px';
-                let pX = parseInt(document.getElementById('player').style.left) || window.innerWidth/2;
+                let p = document.getElementById('player');
+                let pX = parseInt(p.style.left) || window.innerWidth/2;
                 if (posY > window.innerHeight - 110 && posY < window.innerHeight - 30) {
                     let itemX = parseInt(item.style.left);
                     if (itemX > pX - 40 && itemX < pX + 80) {
