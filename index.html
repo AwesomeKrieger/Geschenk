@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Für Dich ❤️">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/emoji/180/heart-suit.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/AwesomeKrieger/Geschenk/refs/heads/main/AppIcon%7Eios-marketing.png">
 
     <title>Valentinstag 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,10 +16,10 @@
     <style>
         body { background: #fff5f5; font-family: 'Inter', sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; overflow: hidden; }
         .handwritten { font-family: 'Dancing Script', cursive; }
-        .timer { font-family: monospace; font-size: 2.5rem; color: #ef4444; font-weight: bold; margin: 1.5rem 0; }
+        .timer { font-family: monospace; font-size: 2.5rem; color: #ef4444; font-weight: bold; margin: 1.5rem 0; letter-spacing: -1px; }
         
-        /* Das Blockier-Fenster (Schummel-Feld) */
-        #cheat-screen { 
+        /* Das Blockier-Feld (Schummel-Screen) */
+        #block-screen { 
             display: none; 
             position: fixed; 
             inset: 0; 
@@ -36,38 +36,38 @@
 </head>
 <body>
 
-    <div id="cheat-screen">
-        <div class="bg-red-50 p-10 rounded-3xl border-2 border-red-200 shadow-2xl">
-            <h1 class="text-4xl font-bold text-red-600 mb-4">Netter Versuch! 😉</h1>
-            <p class="text-gray-600 text-lg mb-6">Man kann die Zeit nicht beschleunigen. Warte bitte geduldig auf den 14. Februar.</p>
-            <div class="text-8xl animate-bounce">⏳</div>
-            <p class="mt-8 text-sm text-gray-400">Stell deine Uhr bitte wieder auf die richtige Zeit zurück.</p>
+    <div id="block-screen">
+        <div class="bg-red-50 p-10 rounded-3xl border-2 border-red-200 shadow-2xl max-w-xs">
+            <h1 class="text-3xl font-bold text-red-600 mb-4">Netter Versuch! 😉</h1>
+            <p class="text-gray-600 mb-6">Man kann die Zeit nicht beschleunigen. Warte bitte geduldig auf den 14. Februar.</p>
+            <div class="text-7xl animate-bounce">⏳</div>
+            <p class="mt-8 text-xs text-gray-400">Bitte stell deine Uhr wieder auf die richtige Zeit zurück.</p>
         </div>
     </div>
 
     <div id="main-content" class="text-center px-6">
         <h1 class="handwritten text-6xl text-red-500 mb-4">Geduld... ❤️</h1>
-        <p class="text-gray-500 italic">Noch ein wenig warten.</p>
+        <p class="text-gray-500 italic">Etwas Besonderes bereitet sich vor.</p>
         
         <div id="timer" class="timer">00d 00h 00m 00s</div>
 
-        <div id="ios-hint" class="mt-12 text-xs text-gray-400">
-            Tippe auf <b>Teilen</b> und dann auf <br> <b>"Zum Home-Bildschirm"</b>
+        <div id="ios-hint" class="mt-12 p-4 bg-white/60 rounded-2xl border border-red-100 text-[10px] text-gray-400 uppercase tracking-widest">
+            Tippe auf <span class="text-blue-500">Teilen</span> & <br> <b>"Zum Home-Bildschirm"</b>
         </div>
     </div>
 
     <script>
-        // Ziel: 14. Februar 2026, 14:00 Uhr
+        // Zielzeitpunkt: 14. Februar 2026, 14:00 Uhr
         const targetDate = new Date('2026-02-14T14:00:00').getTime();
 
-        function update() {
+        function runTimer() {
             const now = new Date().getTime();
             const diff = targetDate - now;
 
-            // Sobald die Zeit abgelaufen ist (egal ob durch Warten oder Verstellen)
+            // Sobald die Zeit abgelaufen ist (durch Warten oder Uhr vorstellen)
             if (diff <= 0) {
                 document.getElementById('main-content').classList.add('hidden');
-                document.getElementById('cheat-screen').style.display = 'flex';
+                document.getElementById('block-screen').style.display = 'flex';
                 return;
             }
 
@@ -80,8 +80,9 @@
                 `${String(d).padStart(2, '0')}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
         }
 
-        setInterval(update, 1000);
-        update();
+        // Start und Intervall
+        setInterval(runTimer, 1000);
+        runTimer();
     </script>
 </body>
 </html>
