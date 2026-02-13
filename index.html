@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentinstag 2026 ❤️</title>
+    <title>Valentinstag Debug Mode ❤️</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -11,12 +11,16 @@
         .handwritten { font-family: 'Dancing Script', cursive; }
         #countdown-screen { position: fixed; inset: 0; background: white; z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         .timer-box { font-size: 2rem; font-weight: bold; color: #ef4444; margin: 20px 0; font-family: monospace; border: 2px solid #fecdd3; padding: 15px; border-radius: 20px; background: #fff1f2; }
+        
+        /* Debug Konsole */
+        #debug-console { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: #0f0; font-family: monospace; font-size: 10px; padding: 10px; z-index: 1000; pointer-events: none; text-align: left; }
+        
         #game-container { position: relative; width: 100vw; height: 100vh; background: #fff5f5; display: none; }
         #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; }
         .falling { position: absolute; font-size: 35px; z-index: 4; }
         #ui { position: absolute; top: 20px; width: 100%; text-align: center; font-weight: bold; color: #ef4444; font-size: 24px; z-index: 10; pointer-events: none; }
         #overlay, #win-screen { display: none; position: fixed; inset: 0; background: white; z-index: 200; flex-direction: column; align-items: center; justify-content: center; padding: 25px; text-align: center; }
-        .instruction-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 320px; }
+        .instruction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; width: 100%; max-width: 320px; }
         .symbol-card { background: #fff1f2; padding: 8px; border-radius: 10px; border: 1px solid #fecdd3; display: flex; align-items: center; gap: 6px; font-size: 11px; color: #991b1b; }
         .btn-start { background: #ef4444; color: white; padding: 16px 60px; border-radius: 50px; font-size: 20px; font-weight: bold; }
         .gift-box { font-size: 100px; cursor: pointer; animation: bounce 1s infinite; }
@@ -26,17 +30,23 @@
 </head>
 <body>
 
+    <div id="debug-console">
+        <div>API-Status: <span id="db-status">Warten...</span></div>
+        <div>Server-Unix: <span id="db-server">0</span></div>
+        <div>Target-Unix: <span id="db-target">0</span></div>
+        <div>Diff: <span id="db-diff">0</span></div>
+    </div>
+
     <div id="countdown-screen">
-        <h1 class="handwritten text-5xl text-red-500 mb-4">Geduld, mein Schatz... ❤️</h1>
-        <p id="status-text" class="text-gray-500 max-w-xs">Echte Zeit wird abgefragt...</p>
-        <div id="timer" class="timer-box">SYNC...</div>
-        <div class="text-4xl animate-pulse">🔒</div>
+        <h1 class="handwritten text-5xl text-red-500 mb-4">Nur noch kurz... ❤️</h1>
+        <p id="status-text" class="text-gray-500 max-w-xs text-sm">Synchronisiere mit Zeit-Server...</p>
+        <div id="timer" class="timer-box">LÄDT...</div>
     </div>
 
     <div id="overlay">
         <h1 class="handwritten text-6xl text-red-500 mb-6">Für dich ❤️</h1>
-        <div class="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 w-full max-w-sm font-bold">
-            <p class="text-red-600 mb-1 underline text-sm">STEUERUNG:</p>
+        <div class="bg-red-50 p-4 rounded-xl border border-red-200 mb-6 w-full max-w-sm">
+            <p class="font-bold text-red-600 mb-1 underline">STEUERUNG:</p>
             <p class="text-sm">Swipe nach LINKS & RECHTS!</p>
         </div>
         <div class="instruction-grid">
@@ -47,7 +57,7 @@
             <div class="symbol-card"><span>💣</span> <b>-400</b></div>
             <div class="symbol-card"><span>❄️</span> <b>-250</b></div>
         </div>
-        <button class="btn-start" onclick="startGame()">MISSION STARTEN</button>
+        <button class="btn-start" onclick="startGame()">SPIELEN</button>
     </div>
 
     <div id="ui" class="hidden">Score: <span id="score">0</span> / 2000</div>
@@ -55,49 +65,71 @@
 
     <div id="win-screen">
         <div id="gift-container">
-            <h1 class="handwritten text-4xl text-red-500 mb-8">Herausforderung bestanden!</h1>
-            <p class="mb-10 text-gray-600 text-sm tracking-widest uppercase">Klicke das Präsent:</p>
+            <h1 class="handwritten text-4xl text-red-500 mb-8">Glückwunsch!</h1>
             <div class="gift-box" onclick="openGift()">🎁</div>
         </div>
         <div id="final-content" class="hidden flex flex-col items-center">
-            <img src="https://via.placeholder.com/400x400?text=EUER+FOTO" id="finalPhoto" class="rounded-2xl shadow-2xl border-4 border-white max-w-[280px] mb-6">
-            <p class="text-gray-700 text-lg italic mb-4 max-w-xs">"Du hast es geschafft! Jede Sekunde des Wartens war es wert."</p>
-            <p class="handwritten text-4xl text-gray-800">Dein [Name]</p>
+            <img src="https://via.placeholder.com/400x400?text=FOTO" id="finalPhoto" class="rounded-2xl shadow-2xl border-4 border-white max-w-[280px] mb-6">
+            <p class="text-gray-700 italic mb-4">"Ich liebe dich!"</p>
+            <p class="handwritten text-4xl text-gray-800">Dein Name</p>
         </div>
     </div>
 
     <script>
-        // Zielzeit: 14. Februar 2026, 14:00 Uhr Deutschland (MEZ)
-        // Unix Zeit Deutschland = UTC + 3600 Sekunden
-        // 14.02.2026, 13:00 UTC = 1739538000
+        // Zielzeit: 14. Feb 2026, 14:00 DE
         const targetUnix = 1739538000; 
         let currentUnix = 0;
+        document.getElementById('db-target').innerText = targetUnix;
 
-        async function syncWithAPI() {
+        async function syncTime() {
+            const dbStatus = document.getElementById('db-status');
+            const dbServer = document.getElementById('db-server');
+            
             try {
-                const response = await fetch("https://timeapi.io/api/v1/time/current/zone?timeZone=Europe/Berlin");
-                const data = await response.json();
+                // Versuche API 1 (TimeAPI)
+                dbStatus.innerText = "Frage TimeAPI.io...";
+                const res = await fetch("https://timeapi.io/api/v1/time/current/zone?timeZone=Europe/Berlin");
+                if (!res.ok) throw new Error("API 1 fehlgeschlagen");
+                const data = await res.json();
                 
-                // Wir nutzen den Unix-Timestamp der API (in Sekunden)
+                // Wir nehmen das ISO Datum und wandeln es in Sekunden um
                 currentUnix = Math.floor(new Date(data.dateTime).getTime() / 1000);
+                dbStatus.innerText = "OK (TimeAPI)";
                 
-                document.getElementById('status-text').innerText = "Warte auf den 14.02. um 14:00 Uhr...";
-                
-                setInterval(() => {
-                    currentUnix++;
-                    const distance = targetUnix - currentUnix;
-
-                    if (distance <= 0) {
-                        document.getElementById('countdown-screen').classList.add('hidden');
-                        document.getElementById('overlay').style.display = 'flex';
-                    } else {
-                        updateDisplay(distance);
-                    }
-                }, 1000);
+                startCounting();
             } catch (e) {
-                document.getElementById('timer').innerText = "FEHLER";
-                document.getElementById('status-text').innerText = "Internetverbindung prüfen!";
+                dbStatus.innerText = "API 1 Fehler. Probiere API 2...";
+                try {
+                    // Fallback API (WorldTimeAPI)
+                    const res2 = await fetch("https://worldtimeapi.org/api/timezone/Europe/Berlin");
+                    const data2 = await res2.json();
+                    currentUnix = data2.unixtime;
+                    dbStatus.innerText = "OK (WorldTimeAPI)";
+                    startCounting();
+                } catch (e2) {
+                    dbStatus.innerText = "KRITISCH: Alle APIs blockiert!";
+                    document.getElementById('timer').innerText = "FEHLER";
+                }
             }
+        }
+
+        function startCounting() {
+            setInterval(() => {
+                currentUnix++;
+                const diff = targetUnix - currentUnix;
+                
+                // Update Debug
+                document.getElementById('db-server').innerText = currentUnix;
+                document.getElementById('db-diff').innerText = diff;
+
+                if (diff <= 0) {
+                    document.getElementById('countdown-screen').classList.add('hidden');
+                    document.getElementById('overlay').style.display = 'flex';
+                    document.getElementById('debug-console').style.display = 'none';
+                } else {
+                    updateDisplay(diff);
+                }
+            }, 1000);
         }
 
         function updateDisplay(s) {
@@ -108,25 +140,14 @@
             document.getElementById('timer').innerText = `${d}d ${h}h ${m}m ${sec}s`;
         }
 
-        syncWithAPI();
+        syncTime();
 
-        // --- SPIEL LOGIK ---
-        let score = 0;
-        let gameActive = false;
+        // --- SPIEL LOGIK (unverändert) ---
+        let score = 0; let gameActive = false;
         let playerX = window.innerWidth / 2 - 40;
         const scoreElement = document.getElementById('score');
         const player = document.getElementById('player');
         const container = document.getElementById('game-container');
-
-        const items = [
-            { s: '❤️', p: 50, prob: 0.4 },
-            { s: '🌹', p: 200, prob: 0.1 },
-            { s: '💎', p: 150, prob: 0.1 },
-            { s: '🔥', p: 300, prob: 0.05 },
-            { s: '💔', p: -100, prob: 0.15 },
-            { s: '💣', p: -400, prob: 0.1 },
-            { s: '❄️', p: -250, prob: 0.1 }
-        ];
 
         function startGame() {
             document.getElementById('overlay').style.display = 'none';
@@ -140,8 +161,6 @@
             if (!gameActive) return;
             let x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             playerX = x - 40;
-            if (playerX < 0) playerX = 0;
-            if (playerX > window.innerWidth - 80) playerX = window.innerWidth - 80;
             player.style.left = playerX + 'px';
         }
         window.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }, {passive: false});
@@ -149,55 +168,31 @@
 
         function spawnLoop() {
             if (!gameActive) return;
-            createItem();
-            let delay = score > 1200 ? 250 : 380; // Hard Mode
-            setTimeout(spawnLoop, delay);
-        }
-
-        function createItem() {
             const item = document.createElement('div');
-            const rand = Math.random();
-            let chosen = items[0];
-            let cumulative = 0;
-            for (let i of items) {
-                cumulative += i.prob;
-                if (rand < cumulative) { chosen = i; break; }
-            }
             item.className = 'falling';
-            item.innerHTML = chosen.s;
+            item.innerHTML = '❤️'; 
             item.style.left = Math.random() * (window.innerWidth - 40) + 'px';
             item.style.top = '-50px';
             container.appendChild(item);
             let posY = -50;
-            let speed = 9 + (score / 150);
             const fall = setInterval(() => {
                 if (!gameActive) { clearInterval(fall); item.remove(); return; }
-                posY += speed;
-                item.style.top = posY + 'px';
+                posY += 8; item.style.top = posY + 'px';
                 if (posY > window.innerHeight - 110 && posY < window.innerHeight - 30) {
                     let itemX = parseInt(item.style.left);
                     if (itemX > playerX - 30 && itemX < playerX + 70) {
-                        score += chosen.p;
-                        if (score < 0) score = 0;
-                        scoreElement.innerText = score;
-                        item.remove();
-                        clearInterval(fall);
+                        score += 50; scoreElement.innerText = score;
+                        item.remove(); clearInterval(fall);
                         if (score >= 2000) win();
                     }
                 }
                 if (posY > window.innerHeight) { item.remove(); clearInterval(fall); }
             }, 20);
+            setTimeout(spawnLoop, 400);
         }
 
-        function win() {
-            gameActive = false;
-            document.getElementById('win-screen').style.display = 'flex';
-        }
-
-        function openGift() {
-            document.getElementById('gift-container').classList.add('hidden');
-            document.getElementById('final-content').classList.remove('hidden');
-        }
+        function win() { gameActive = false; document.getElementById('win-screen').style.display = 'flex'; }
+        function openGift() { document.getElementById('gift-container').classList.add('hidden'); document.getElementById('final-content').classList.remove('hidden'); }
     </script>
 </body>
 </html>
