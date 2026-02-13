@@ -13,7 +13,7 @@
         .timer-box { font-size: 2.2rem; font-weight: bold; color: #ef4444; margin: 15px 0; font-family: monospace; border: 2px solid #fecdd3; padding: 15px; border-radius: 20px; background: #fff1f2; }
         #debug-log { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); color: #00ff00; font-family: monospace; font-size: 10px; padding: 10px; z-index: 1000; pointer-events: none; }
         #game-container { position: relative; width: 100vw; height: 100vh; display: none; }
-        #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; }
+        #player { position: absolute; bottom: 30px; width: 80px; height: 80px; font-size: 60px; display: flex; justify-content: center; align-items: center; z-index: 5; transition: left 0.1s ease-out; }
         .falling { position: absolute; font-size: 35px; z-index: 4; }
         #overlay, #win-screen { display: none; position: fixed; inset: 0; background: white; z-index: 200; flex-direction: column; align-items: center; justify-content: center; padding: 25px; text-align: center; }
         .btn-start { background: #ef4444; color: white; padding: 16px 60px; border-radius: 50px; font-size: 20px; font-weight: bold; }
@@ -22,26 +22,27 @@
 </head>
 <body>
 
-    <div id="debug-log">Initialisiere Zeit-Check...</div>
+    <div id="debug-log">Prüfe timeapi.io...</div>
 
     <div id="countdown-screen">
-        <h1 class="handwritten text-5xl text-red-500 mb-4">Nur noch kurz... ❤️</h1>
-        <div id="timer" class="timer-box">LÄDT...</div>
+        <h1 class="handwritten text-5xl text-red-500 mb-4">Fast soweit... ❤️</h1>
+        <div id="timer" class="timer-box">SYNC...</div>
+        <p id="status-text" class="text-gray-400 text-xs">Zeit-Check läuft</p>
     </div>
 
     <div id="overlay">
         <h1 class="handwritten text-6xl text-red-500 mb-6">Für dich ❤️</h1>
-        <button class="btn-start" onclick="startGame()">JETZT SPIELEN</button>
+        <button class="btn-start" onclick="startGame()">MISSION STARTEN</button>
     </div>
 
     <div id="ui" class="hidden fixed top-5 w-full text-center font-bold text-red-500 text-2xl z-50">Score: <span id="score">0</span></div>
     <div id="game-container"><div id="player" style="left: 50%;">🧺</div></div>
 
     <div id="win-screen">
-        <h1 class="handwritten text-4xl text-red-500 mb-8">Geschafft!</h1>
-        <div class="text-8xl cursor-pointer" onclick="document.getElementById('final').classList.remove('hidden')">🎁</div>
+        <h1 class="handwritten text-4xl text-red-500 mb-8">Herausforderung bestanden!</h1>
+        <div class="text-8xl cursor-pointer animate-bounce" onclick="document.getElementById('final').classList.remove('hidden')">🎁</div>
         <div id="final" class="hidden mt-6 flex flex-col items-center">
-            <img src="https://via.placeholder.com/400x400?text=UNSER+FOTO" class="rounded-2xl shadow-xl max-w-[250px]">
+            <img src="https://via.placeholder.com/400x400?text=UNSER+FOTO" class="rounded-2xl shadow-xl max-w-[250px] border-4 border-white">
             <p class="handwritten text-3xl mt-4">Ich liebe dich!</p>
         </div>
     </div>
@@ -57,22 +58,40 @@
         }
 
         async function initTime() {
-            log("Frage Zeit-Server ab...");
+            const apiUrl = "https://timeapi.io/api/v1/time/current/unix";
+            
             try {
-                // Wir nutzen AllOrigins als Proxy für Google's Homepage-Header
-                // Das ist extrem stabil, da Google fast nie "502" wirft.
-                const response = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://google.com"));
-                const data = await response.json();
-                
-                // Wir nutzen den "Date"-Header der Antwort (Serverzeit von Google)
-                // Falls AllOrigins den Header nicht mitliefert, nutzen wir deren interne Zeit
-                const serverDate = new Date(data.status.last_updated || Date.now());
-                currentUnix = Math.floor(serverDate.getTime() / 1000);
-                
-                log("Server-Zeit erhalten: " + serverDate.toLocaleTimeString());
-                startCountdown();
+                // Versuch 1: Direkt
+                log("Anfrage an timeapi.io...");
+                let response = await fetch(apiUrl);
+                let data = await response.json();
+                handleData(data);
             } catch (err) {
-                log("<span style='color:orange'>Netzwerk-Fehler. Nutze Systemzeit.</span>");
+                log("CORS blockiert direkt. Nutze Proxy...");
+                try {
+                    // Versuch 2: Über AllOrigins Proxy
+                    const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
+                    let response = await fetch(proxyUrl);
+                    let proxyData = await response.json();
+                    // AllOrigins liefert das JSON als String in .contents
+                    let data = JSON.parse(proxyData.contents);
+                    handleData(data);
+                } catch (err2) {
+                    log("<span style='color:orange'>API Down. Nutze Systemzeit.</span>");
+                    currentUnix = Math.floor(Date.now() / 1000);
+                    startCountdown();
+                }
+            }
+        }
+
+        function handleData(data) {
+            log("Antwort: " + JSON.stringify(data));
+            if (data && data.unix_timestamp) {
+                currentUnix = data.unix_timestamp;
+                log("Unix-Zeit gesetzt: " + currentUnix);
+                startCountdown();
+            } else {
+                log("Fehler: Falsches Format!");
                 currentUnix = Math.floor(Date.now() / 1000);
                 startCountdown();
             }
@@ -122,7 +141,8 @@
             const fall = setInterval(() => {
                 posY += 8;
                 item.style.top = posY + 'px';
-                let pX = parseInt(document.getElementById('player').style.left) || window.innerWidth/2;
+                let p = document.getElementById('player');
+                let pX = parseInt(p.style.left) || window.innerWidth/2;
                 if (posY > window.innerHeight - 110 && posY < window.innerHeight - 30) {
                     let itemX = parseInt(item.style.left);
                     if (itemX > pX - 40 && itemX < pX + 80) {
@@ -137,12 +157,13 @@
             setTimeout(spawn, 400);
         }
 
-        const moveHandler = (e) => {
+        const move = (e) => {
+            if (!gameActive) return;
             const x = e.touches ? e.touches[0].clientX : e.clientX;
             document.getElementById('player').style.left = (x - 40) + 'px';
         };
-        window.addEventListener('mousemove', moveHandler);
-        window.addEventListener('touchmove', (e) => { e.preventDefault(); moveHandler(e); }, {passive: false});
+        window.addEventListener('mousemove', move);
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }, {passive: false});
     </script>
 </body>
 </html>
