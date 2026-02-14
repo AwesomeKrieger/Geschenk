@@ -3,62 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Ultimate Mission ❤️</title>
+    <title>The Sky Challenge ❤️</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; touch-action: none; color: white; }
-        .handwritten { font-family: 'Dancing Script', cursive; }
+        body, html { margin: 0; padding: 0; width: 100%; overflow-x: hidden; background: #87CEEB; font-family: 'Inter', sans-serif; }
+        canvas { display: block; background: linear-gradient(to bottom, #2e7bb6, #87CEEB); }
         
-        /* SPIEL-ELEMENTE */
-        #game-container { position: fixed; inset: 0; display: none; background: linear-gradient(to bottom, #111, #450a0a); }
-        #player { position: absolute; bottom: 40px; width: 70px; height: 70px; font-size: 55px; z-index: 100; transform: translateX(-50%); }
-        .falling { position: absolute; font-size: 30px; z-index: 50; }
+        #ui-layer { position: fixed; inset: 0; pointer-events: none; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn { pointer-events: auto; background: #ef4444; color: white; padding: 15px 40px; border-radius: 50px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
         
-        /* FINALE SCROLL-ANIMATION */
-        #scroll-finale { display: none; height: 500vh; background: #fff; color: #000; }
-        .word-section { height: 100vh; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; overflow: hidden; }
-        .big-word { font-size: 15vw; font-weight: 900; color: #ef4444; text-transform: uppercase; opacity: 0; transform: translateY(50px); transition: all 0.5s ease-out; }
-        .word-active { opacity: 1; transform: translateY(0) scale(1.1); }
+        /* FINALE SCROLL SEKTION */
+        #scroll-finale { display: none; width: 100%; background: white; position: relative; }
+        .word-section { height: 100vh; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; }
+        .big-word { font-size: 12vw; font-weight: 900; color: #ef4444; opacity: 0; transform: scale(0.5); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-transform: uppercase; }
+        .active { opacity: 1; transform: scale(1); }
         
-        #airplane-finale { position: fixed; top: 35%; left: -150px; font-size: 100px; z-index: 200; pointer-events: none; }
-        
-        /* UI */
-        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        #plane-icon { position: fixed; top: 40%; left: -100px; font-size: 80px; z-index: 200; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div id="start-screen" class="fixed inset-0 flex flex-col items-center justify-center z-[300] p-8 text-center bg-black">
-        <h1 class="handwritten text-6xl text-red-500 mb-8">Deine Mission</h1>
-        
-        <div class="glass-panel p-6 rounded-3xl max-w-sm mb-8">
-            <h2 class="text-xl font-bold mb-4 uppercase text-red-400">Spielregeln:</h2>
-            <ul class="text-left space-y-4 text-sm">
-                <li>🎯 Ziel: <span class="font-bold text-white">3.000 Punkte</span></li>
-                <li>❤️ Herz: <span class="text-green-400">+100 Punkte</span></li>
-                <li>⚡ Blitz: <span class="text-yellow-400">-200 Punkte</span></li>
-                <li>💣 Bombe: <span class="text-red-600">-500 Punkte</span></li>
-                <li class="italic text-gray-400 text-xs text-center border-t border-white/10 pt-2">Achtung: Es wird jede Sekunde schneller!</li>
-            </ul>
+    <div id="ui-layer">
+        <div id="start-menu" class="text-center bg-white/90 p-8 rounded-3xl shadow-2xl pointer-events-auto max-w-xs">
+            <h1 class="font-bold text-2xl mb-4 text-blue-600">MISSION: FLUGTICKET ✈️</h1>
+            <p class="text-gray-600 text-sm mb-6">Tippe auf den Bildschirm, um das Flugzeug hochzuhalten. Weiche den roten Balken aus!</p>
+            <p class="text-red-500 font-bold mb-6 italic">Ziel: 25 Hindernisse schaffen!</p>
+            <button class="btn" onclick="initGame()">JETZT FLIEGEN</button>
         </div>
-
-        <button onclick="startGame()" class="bg-red-600 text-white px-16 py-5 rounded-full font-black text-2xl shadow-xl active:scale-90 transition-transform">
-            JETZT STARTEN
-        </button>
+        <div id="score-display" class="fixed top-10 text-white font-black text-4xl hidden drop-shadow-md">0</div>
     </div>
 
-    <div id="ui" class="hidden fixed top-6 left-0 w-full flex justify-around font-black text-2xl z-[150]">
-        <div class="glass-panel px-6 py-2 rounded-full">SCORE: <span id="score" class="text-red-500">0</span></div>
-    </div>
-    
-    <div id="game-container">
-        <div id="player" style="left: 50%;">🧺</div>
-    </div>
+    <canvas id="gameCanvas"></canvas>
 
     <div id="scroll-finale">
-        <div id="airplane-finale">✈️</div>
-        
+        <div id="plane-icon">✈️</div>
         <div class="word-section"><div class="big-word">ICH</div></div>
         <div class="word-section"><div class="big-word">ZAHLE</div></div>
         <div class="word-section"><div class="big-word">DIR</div></div>
@@ -67,114 +46,133 @@
     </div>
 
     <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score-display');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let gameRunning = false;
         let score = 0;
-        let gameActive = false;
-        const gameContainer = document.getElementById('game-container');
-        const scoreEl = document.getElementById('score');
+        const target = 25; // Anzahl der Hindernisse für den Sieg
 
-        function startGame() {
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('ui').classList.remove('hidden');
-            gameContainer.style.display = 'block';
-            gameActive = true;
-            spawnLogic();
+        const plane = { x: 50, y: canvas.height/2, w: 50, h: 35, gravity: 0.6, lift: -10, velocity: 0 };
+        const pipes = [];
+        const pipeWidth = 60;
+        const pipeGap = 180;
+
+        function initGame() {
+            document.getElementById('start-menu').style.display = 'none';
+            scoreDisplay.classList.remove('hidden');
+            gameRunning = true;
+            score = 0;
+            pipes.length = 0;
+            plane.y = canvas.height/2;
+            plane.velocity = 0;
+            animate();
         }
 
-        function spawnLogic() {
-            if (!gameActive) return;
-
-            // Starker Fokus auf Hindernisse
-            const items = ['❤️', '⚡', '💣', '⚡', '❤️', '💣', '⚡']; 
-            const type = items[Math.floor(Math.random() * items.length)];
-            
-            const item = document.createElement('div');
-            item.className = 'falling';
-            item.innerHTML = type;
-            item.style.left = Math.random() * (window.innerWidth - 60) + 30 + 'px';
-            item.style.top = '-60px';
-            gameContainer.appendChild(item);
-
-            let posY = -60;
-            let currentSpeed = 6 + (score / 400); 
-
-            const fall = setInterval(() => {
-                if (!gameActive) { clearInterval(fall); item.remove(); return; }
-                
-                posY += currentSpeed;
-                item.style.top = posY + 'px';
-                
-                const p = document.getElementById('player');
-                const pRect = p.getBoundingClientRect();
-                const iRect = item.getBoundingClientRect();
-
-                if (iRect.bottom > pRect.top + 20 && iRect.top < pRect.bottom && iRect.right > pRect.left && iRect.left < pRect.right) {
-                    if (type === '❤️') {
-                        score += 100;
-                    } else if (type === '⚡') {
-                        score = Math.max(0, score - 200);
-                    } else if (type === '💣') {
-                        score = Math.max(0, score - 500);
-                    }
-                    
-                    scoreEl.innerText = score;
-                    item.remove();
-                    clearInterval(fall);
-                    checkWin();
-                }
-
-                if (posY > window.innerHeight) {
-                    item.remove();
-                    clearInterval(fall);
-                }
-            }, 16);
-
-            let nextSpawn = Math.max(180, 450 - (score / 15));
-            setTimeout(spawnLogic, nextSpawn);
+        function createPipe() {
+            const minHeight = 50;
+            const maxHeight = canvas.height - pipeGap - minHeight;
+            const topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
+            pipes.push({ x: canvas.width, top: topHeight, passed: false });
         }
 
-        function checkWin() {
-            if (score >= 3000) {
-                gameActive = false;
-                document.getElementById('game-container').style.display = 'none';
-                document.getElementById('ui').style.display = 'none';
-                document.getElementById('scroll-finale').style.display = 'block';
-                document.body.style.overflowY = 'auto';
-                document.body.style.touchAction = 'auto';
-                window.scrollTo(0, 0);
+        function animate() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Flugzeug Physik
+            plane.velocity += plane.gravity;
+            plane.y += plane.velocity;
+
+            // Zeichne Flugzeug
+            ctx.font = "40px Arial";
+            ctx.fillText("✈️", plane.x, plane.y);
+
+            // Hindernisse
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 250) {
+                createPipe();
             }
+
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                pipes[i].x -= 4; // Geschwindigkeit
+
+                // Zeichne Hindernisse (Rot für Gefahr)
+                ctx.fillStyle = "#ef4444";
+                ctx.fillRect(pipes[i].x, 0, pipeWidth, pipes[i].top);
+                ctx.fillRect(pipes[i].x, pipes[i].top + pipeGap, pipeWidth, canvas.height);
+
+                // Kollision
+                if (plane.x + 30 > pipes[i].x && plane.x < pipes[i].x + pipeWidth) {
+                    if (plane.y - 20 < pipes[i].top || plane.y + 10 > pipes[i].top + pipeGap) {
+                        gameOver();
+                    }
+                }
+
+                // Punkt zählen
+                if (!pipes[i].passed && pipes[i].x < plane.x) {
+                    pipes[i].passed = true;
+                    score++;
+                    scoreDisplay.innerText = score;
+                    if (score >= target) win();
+                }
+
+                if (pipes[i].x + pipeWidth < 0) pipes.splice(i, 1);
+            }
+
+            // Boden/Decke Kollision
+            if (plane.y > canvas.height || plane.y < 0) gameOver();
+
+            requestAnimationFrame(animate);
         }
 
-        // SCROLL-LOGIK
-        window.addEventListener('scroll', () => {
-            const scrollPercent = window.scrollY / (document.body.offsetHeight - window.innerHeight);
-            const airplane = document.getElementById('airplane-finale');
-            
-            // Flugzeug Flugbahn
-            const x = (scrollPercent * (window.innerWidth + 300)) - 150;
-            const y = 35 + Math.sin(scrollPercent * 12) * 10;
-            airplane.style.left = x + 'px';
-            airplane.style.top = y + '%';
-            airplane.style.transform = `rotate(${(scrollPercent * 15) - 5}deg)`;
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('start-menu').style.display = 'block';
+            document.getElementById('start-menu').innerHTML = `
+                <h1 class="text-red-600 font-bold text-2xl mb-2">ABGESTÜRZT!</h1>
+                <p class="mb-4">Du hast ${score} Hindernisse geschafft.</p>
+                <button class="btn" onclick="initGame()">NOCHMAL PROBIEREN</button>
+            `;
+        }
 
-            // Wörter Einblenden
+        function win() {
+            gameRunning = false;
+            canvas.style.display = 'none';
+            scoreDisplay.style.display = 'none';
+            
+            const finale = document.getElementById('scroll-finale');
+            finale.style.display = 'block';
+            document.body.style.overflowY = 'scroll';
+            document.body.style.height = 'auto';
+            window.scrollTo(0, 0);
+        }
+
+        // Steuerung
+        const flap = () => { if (gameRunning) plane.velocity = plane.lift; };
+        window.addEventListener('mousedown', flap);
+        window.addEventListener('touchstart', (e) => { e.preventDefault(); flap(); }, {passive: false});
+
+        // SCROLL LOGIK FÜR DAS FINALE
+        window.onscroll = () => {
+            const scrollPercent = window.scrollY / (document.body.offsetHeight - window.innerHeight);
+            const planeIcon = document.getElementById('plane-icon');
+            
+            // Flugzeug fliegt über den Schirm
+            planeIcon.style.left = (scrollPercent * 120) - 10 + '%';
+            planeIcon.style.top = 40 + Math.sin(scrollPercent * 10) * 10 + '%';
+
             const words = document.querySelectorAll('.big-word');
             words.forEach((word, i) => {
                 const trigger = i / words.length;
-                if (scrollPercent > trigger - 0.05) {
-                    word.classList.add('word-active');
-                } else {
-                    word.classList.remove('word-active');
-                }
+                if (scrollPercent > trigger - 0.1) word.classList.add('active');
+                else word.classList.remove('active');
             });
-        });
-
-        const handleMove = (e) => {
-            if (!gameActive) return;
-            const x = e.touches ? e.touches[0].clientX : e.clientX;
-            document.getElementById('player').style.left = x + 'px';
         };
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive: false});
     </script>
 </body>
 </html>
