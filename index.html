@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Ultimate Mission ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; touch-action: none; color: white; }
+        .handwritten { font-family: 'Dancing Script', cursive; }
+        
+        /* SPIEL-ELEMENTE */
+        #game-container { position: fixed; inset: 0; display: none; background: linear-gradient(to bottom, #111, #450a0a); }
+        #player { position: absolute; bottom: 40px; width: 70px; height: 70px; font-size: 55px; z-index: 100; transform: translateX(-50%); }
+        .falling { position: absolute; font-size: 30px; z-index: 50; }
+        
+        /* FINALE SCROLL-ANIMATION */
+        #scroll-finale { display: none; height: 500vh; background: #fff; color: #000; }
+        .word-section { height: 100vh; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; overflow: hidden; }
+        .big-word { font-size: 15vw; font-weight: 900; color: #ef4444; text-transform: uppercase; opacity: 0; transform: translateY(50px); transition: all 0.5s ease-out; }
+        .word-active { opacity: 1; transform: translateY(0) scale(1.1); }
+        
+        #airplane-finale { position: fixed; top: 35%; left: -150px; font-size: 100px; z-index: 200; pointer-events: none; }
+        
+        /* UI */
+        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="fixed inset-0 flex flex-col items-center justify-center z-[300] p-8 text-center bg-black">
+        <h1 class="handwritten text-6xl text-red-500 mb-8">Deine Mission</h1>
+        
+        <div class="glass-panel p-6 rounded-3xl max-w-sm mb-8">
+            <h2 class="text-xl font-bold mb-4 uppercase text-red-400">Spielregeln:</h2>
+            <ul class="text-left space-y-4 text-sm">
+                <li>🎯 Ziel: <span class="font-bold text-white">3.000 Punkte</span></li>
+                <li>❤️ Herz: <span class="text-green-400">+100 Punkte</span></li>
+                <li>⚡ Blitz: <span class="text-yellow-400">-200 Punkte</span></li>
+                <li>💣 Bombe: <span class="text-red-600">-500 Punkte</span></li>
+                <li class="italic text-gray-400 text-xs text-center border-t border-white/10 pt-2">Achtung: Es wird jede Sekunde schneller!</li>
+            </ul>
+        </div>
+
+        <button onclick="startGame()" class="bg-red-600 text-white px-16 py-5 rounded-full font-black text-2xl shadow-xl active:scale-90 transition-transform">
+            JETZT STARTEN
+        </button>
+    </div>
+
+    <div id="ui" class="hidden fixed top-6 left-0 w-full flex justify-around font-black text-2xl z-[150]">
+        <div class="glass-panel px-6 py-2 rounded-full">SCORE: <span id="score" class="text-red-500">0</span></div>
+    </div>
+    
+    <div id="game-container">
+        <div id="player" style="left: 50%;">🧺</div>
+    </div>
+
+    <div id="scroll-finale">
+        <div id="airplane-finale">✈️</div>
+        
+        <div class="word-section"><div class="big-word">ICH</div></div>
+        <div class="word-section"><div class="big-word">ZAHLE</div></div>
+        <div class="word-section"><div class="big-word">DIR</div></div>
+        <div class="word-section"><div class="big-word">DEN</div></div>
+        <div class="word-section"><div class="big-word">FLUG!</div></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let gameActive = false;
+        const gameContainer = document.getElementById('game-container');
+        const scoreEl = document.getElementById('score');
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('ui').classList.remove('hidden');
+            gameContainer.style.display = 'block';
+            gameActive = true;
+            spawnLogic();
+        }
+
+        function spawnLogic() {
+            if (!gameActive) return;
+
+            // Starker Fokus auf Hindernisse
+            const items = ['❤️', '⚡', '💣', '⚡', '❤️', '💣', '⚡']; 
+            const type = items[Math.floor(Math.random() * items.length)];
+            
+            const item = document.createElement('div');
+            item.className = 'falling';
+            item.innerHTML = type;
+            item.style.left = Math.random() * (window.innerWidth - 60) + 30 + 'px';
+            item.style.top = '-60px';
+            gameContainer.appendChild(item);
+
+            let posY = -60;
+            let currentSpeed = 6 + (score / 400); 
+
+            const fall = setInterval(() => {
+                if (!gameActive) { clearInterval(fall); item.remove(); return; }
+                
+                posY += currentSpeed;
+                item.style.top = posY + 'px';
+                
+                const p = document.getElementById('player');
+                const pRect = p.getBoundingClientRect();
+                const iRect = item.getBoundingClientRect();
+
+                if (iRect.bottom > pRect.top + 20 && iRect.top < pRect.bottom && iRect.right > pRect.left && iRect.left < pRect.right) {
+                    if (type === '❤️') {
+                        score += 100;
+                    } else if (type === '⚡') {
+                        score = Math.max(0, score - 200);
+                    } else if (type === '💣') {
+                        score = Math.max(0, score - 500);
+                    }
+                    
+                    scoreEl.innerText = score;
+                    item.remove();
+                    clearInterval(fall);
+                    checkWin();
+                }
+
+                if (posY > window.innerHeight) {
+                    item.remove();
+                    clearInterval(fall);
+                }
+            }, 16);
+
+            let nextSpawn = Math.max(180, 450 - (score / 15));
+            setTimeout(spawnLogic, nextSpawn);
+        }
+
+        function checkWin() {
+            if (score >= 3000) {
+                gameActive = false;
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('ui').style.display = 'none';
+                document.getElementById('scroll-finale').style.display = 'block';
+                document.body.style.overflowY = 'auto';
+                document.body.style.touchAction = 'auto';
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // SCROLL-LOGIK
+        window.addEventListener('scroll', () => {
+            const scrollPercent = window.scrollY / (document.body.offsetHeight - window.innerHeight);
+            const airplane = document.getElementById('airplane-finale');
+            
+            // Flugzeug Flugbahn
+            const x = (scrollPercent * (window.innerWidth + 300)) - 150;
+            const y = 35 + Math.sin(scrollPercent * 12) * 10;
+            airplane.style.left = x + 'px';
+            airplane.style.top = y + '%';
+            airplane.style.transform = `rotate(${(scrollPercent * 15) - 5}deg)`;
+
+            // Wörter Einblenden
+            const words = document.querySelectorAll('.big-word');
+            words.forEach((word, i) => {
+                const trigger = i / words.length;
+                if (scrollPercent > trigger - 0.05) {
+                    word.classList.add('word-active');
+                } else {
+                    word.classList.remove('word-active');
+                }
+            });
+        });
+
+        const handleMove = (e) => {
+            if (!gameActive) return;
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            document.getElementById('player').style.left = x + 'px';
+        };
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, {passive: false});
+    </script>
+</body>
+</html>
